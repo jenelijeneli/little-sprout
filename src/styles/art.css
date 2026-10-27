@@ -1,0 +1,133 @@
+/* Art direction layer.
+   Gives every panel, button and card the same hand-made finish as the garden:
+   paper and wood textures (src/assets/ui), cel-shaded edges (a light band on
+   top, a darker band underneath) and stitched borders. It only changes looks,
+   so it is loaded last and never touches layout. */
+
+:root {
+  --paper-tex: url('../assets/ui/paper.svg');
+  --wood-tex: url('../assets/ui/wood.svg');
+  --plate: url('../assets/ui/plate.svg');
+  --cel: inset 0 -4px 0 rgba(74, 52, 40, 0.16), inset 0 3px 0 rgba(255, 255, 255, 0.45);
+  --cel-sm: inset 0 -3px 0 rgba(74, 52, 40, 0.14), inset 0 2px 0 rgba(255, 255, 255, 0.45);
+  --stitch: 2px dashed rgba(182, 127, 76, 0.45);
+}
+
+body {
+  background-image: var(--paper-tex);
+  background-size: 160px;
+  background-position: 0 0;
+}
+
+/* ---------- Paper surfaces ---------- */
+
+.drawer, .popover, .toast, .banner, .hud-chip, .card, .row, .packet-card,
+.seed-option, .tab, .chip, .x, .tool-chip, .empty, .reqs li, .need {
+  background-image: var(--paper-tex);
+  background-size: 160px;
+}
+
+.drawer, .popover, .banner {
+  outline: var(--stitch);
+  outline-offset: -9px;
+}
+.drawer-body { position: relative; }
+
+.hud-chip { box-shadow: var(--cel-sm), var(--lift-sm); }
+.card, .row { box-shadow: var(--cel-sm); }
+.card.locked { background-image: var(--paper-tex); background-size: 160px; }
+.toast { box-shadow: var(--cel-sm), var(--lift); }
+
+/* shop, basket and seed art sits on a little hand-drawn plate */
+.card-art, .packet-card .packet, .seed-option .packet {
+  background: var(--plate) center / 100% 100% no-repeat;
+  padding: 3px;
+}
+.card-art.small { padding: 2px; }
+
+.drawer-body h3 {
+  padding-bottom: 4px;
+  border-bottom: var(--stitch);
+}
+
+/* ---------- Wood ---------- */
+
+.drawer-head {
+  background: var(--wood-light) var(--wood-tex) 0 0 / 240px 100%;
+  box-shadow: inset 0 -4px 0 rgba(74, 52, 40, 0.18);
+}
+.drawer-head h2 {
+  color: var(--paper);
+  text-shadow: 0 2px 0 var(--wood-dark), 2px 0 0 var(--wood-dark), -2px 0 0 var(--wood-dark), 0 -2px 0 var(--wood-dark), 0 3px 0 var(--ink);
+  letter-spacing: 0.3px;
+}
+
+.dock {
+  background: var(--wood-light) var(--wood-tex) 0 0 / 240px 100%;
+  box-shadow: var(--lift), var(--cel);
+}
+/* little nail heads in the corners of the toolbar */
+.dock::before, .dock::after {
+  content: '';
+  position: absolute;
+  top: 7px;
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  background: var(--stone, #dcd5c5);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+.dock::before { left: 8px; }
+.dock::after { right: 8px; }
+.dock-btn { text-shadow: 0 1px 0 rgba(251, 243, 225, 0.7); }
+.dock-btn.active { box-shadow: var(--cel-sm), var(--lift-sm); }
+.dock-sep { background: rgba(74, 52, 40, 0.3); box-shadow: 1px 0 0 rgba(255, 240, 210, 0.5); }
+
+/* ---------- Buttons: chunky and cel-shaded, like the art ---------- */
+
+.btn, .seed-option, .packet-card, .x {
+  box-shadow: var(--cel-sm), var(--lift-sm);
+}
+.btn {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  background-image: none;
+}
+.btn:active,
+.seed-option:active:not(:disabled),
+.x:active {
+  box-shadow: inset 0 3px 0 rgba(74, 52, 40, 0.2);
+}
+.btn:disabled,
+.seed-option:disabled { box-shadow: var(--cel-sm); }
+.btn.cant-afford { box-shadow: var(--cel-sm), var(--lift-sm); }
+
+.tab { box-shadow: var(--cel-sm); }
+.tab.active { background-image: none; box-shadow: var(--cel-sm), var(--lift-sm); }
+
+/* ---------- Meters ---------- */
+
+.meter i { box-shadow: inset 0 -3px 0 rgba(74, 52, 40, 0.16), inset 0 2px 0 rgba(255, 255, 255, 0.55); }
+
+/* ---------- Garden frame ---------- */
+
+.stage { box-shadow: 0 6px 0 rgba(74, 52, 40, 0.35), 0 20px 40px rgba(74, 52, 40, 0.18), inset 0 0 0 3px rgba(255, 248, 228, 0.35); }
+
+@keyframes glowBtn {
+  0%, 100% { box-shadow: var(--cel-sm), var(--lift-sm), 0 0 0 0 rgba(232, 184, 74, 0); }
+  50% { box-shadow: var(--cel-sm), var(--lift-sm), 0 0 0 5px rgba(232, 184, 74, 0.5); }
+}
+
+/* little tags for crop facts in the shop */
+.facts { gap: 4px; margin-top: 3px; }
+.fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: rgba(214, 165, 109, 0.22);
+  white-space: nowrap;
+}
+.card > .card-art { width: 60px; height: 60px; padding: 4px; }

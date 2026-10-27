@@ -1,0 +1,267 @@
+/* Little Sprout – base styles, colours and page layout. */
+
+:root {
+  /* Palette (matches the SVG artwork) */
+  --ink: #4a3428;
+  --ink-soft: #7a6250;
+  --paper: #fbf3e1;
+  --paper-2: #f4e6c8;
+  --paper-3: #e7d1a6;
+  --page: #e8d9b5;
+  --grass: #a9cc72;
+  --leaf: #6fae4a;
+  --leaf-dark: #4f8a36;
+  --leaf-light: #9fd06a;
+  --leaf-pale: #d6eab0;
+  --mustard: #e8b84a;
+  --mustard-dark: #c4902c;
+  --pink: #f2a7a8;
+  --pink-dark: #d97f86;
+  --berry: #d9473f;
+  --water: #7cc3e0;
+  --water-dark: #4b97bd;
+  --wood: #b67f4c;
+  --wood-dark: #8b5a33;
+  --wood-light: #d6a56d;
+
+  /* Hand-drawn feel: slightly uneven corners and a solid "printed" shadow */
+  --wobble: 20px 16px 22px 15px / 15px 22px 16px 20px;
+  --wobble-sm: 12px 10px 13px 9px / 9px 13px 10px 12px;
+  --lift: 0 4px 0 rgba(74, 52, 40, 0.28);
+  --lift-sm: 0 3px 0 rgba(74, 52, 40, 0.3);
+  --line: 3px solid var(--ink);
+
+  --font-display: 'Fredoka', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --font-body: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--ink);
+  background-color: var(--page);
+  /* a faint speckle so the page feels like paper */
+  background-image:
+    radial-gradient(rgba(122, 98, 80, 0.12) 1px, transparent 1.4px),
+    radial-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1.4px);
+  background-size: 22px 22px, 31px 31px;
+  background-position: 0 0, 11px 7px;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, strong, b, .btn, .dock-btn, .tab {
+  font-family: var(--font-display);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+img {
+  user-select: none;
+}
+
+:focus-visible {
+  outline: 3px dashed var(--water-dark);
+  outline-offset: 3px;
+}
+
+/* ---------- Page layout ---------- */
+
+.app {
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.playfield {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  gap: 14px;
+  padding: 4px 16px 6px;
+}
+
+.garden-wrap {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: var(--line);
+  border-radius: var(--wobble-sm);
+  background: var(--leaf-light);
+  box-shadow: var(--lift-sm);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.08s, box-shadow 0.08s, filter 0.12s;
+}
+.btn:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 rgba(74, 52, 40, 0.3);
+}
+.btn:disabled {
+  cursor: default;
+  filter: grayscale(0.6);
+  opacity: 0.65;
+  transform: none;
+}
+.btn-small {
+  padding: 5px 10px;
+  font-size: 0.9rem;
+  border-width: 2.5px;
+}
+.btn-gold { background: var(--mustard); }
+.btn-pink { background: var(--pink); }
+.btn-water { background: var(--water); }
+.btn-danger { background: #f0b4a4; }
+/* Shown when the player can't afford it; still clickable so we can explain why. */
+.btn.cant-afford {
+  background: var(--paper-3);
+  color: var(--ink-soft);
+}
+
+.link {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--water-dark);
+  text-decoration: underline wavy;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.x {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 2.5px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--lift-sm);
+}
+.x:hover { background: var(--pink); }
+.x:active { transform: translateY(2px); box-shadow: none; }
+
+.icon-btn {
+  border: 0;
+  background: none;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.icon-btn:hover { transform: rotate(40deg) scale(1.08); }
+
+/* ---------- Icons ---------- */
+
+.icon { width: 24px; height: 24px; vertical-align: middle; flex: none; }
+.icon-xs { width: 16px; height: 16px; }
+.icon-sm { width: 20px; height: 20px; }
+.icon-md { width: 30px; height: 30px; }
+.icon-lg { width: 40px; height: 40px; }
+
+/* ---------- Small shared pieces ---------- */
+
+.price {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.price.short { color: var(--berry); }
+
+.meter {
+  position: relative;
+  display: inline-block;
+  height: 12px;
+  min-width: 60px;
+  flex: 1;
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.meter i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--leaf-light);
+  border-right: 2px solid rgba(74, 52, 40, 0.35);
+  transition: width 0.6s ease;
+}
+.meter-heart i { background: var(--pink); }
+.meter-xp i { background: var(--mustard); }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: 0.82rem;
+  font-family: var(--font-display);
+}
+
+.hint {
+  margin: 8px 0 0;
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+  line-height: 1.35;
+}
+.hint.strong { color: var(--ink); font-weight: 800; }
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

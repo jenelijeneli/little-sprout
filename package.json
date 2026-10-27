@@ -1,0 +1,20 @@
+{
+  "name": "little-sprout",
+  "private": true,
+  "version": "1.0.0",
+  "description": "A cozy fantasy farming game made with HTML, CSS, JavaScript and hand-drawn SVG art.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.js"
+  },
+  "devDependencies": {
+    "vite": "^6.4.5"
+  },
+  "dependencies": {
+    "@fontsource/fredoka": "^5.3.0",
+    "@fontsource/nunito": "^5.3.0"
+  }
+}

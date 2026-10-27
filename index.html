@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Little Sprout, a cozy fantasy farming game." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Little Sprout</title>
+  </head>
+  <body>
+    <div id="app" class="app">
+      <header class="hud" id="hud"></header>
+      <main class="playfield">
+        <div class="garden-wrap" id="garden-wrap">
+          <div class="stage" id="stage" aria-label="Your garden"></div>
+          <div class="stage house-stage" id="house" aria-label="Inside your cottage" hidden></div>
+          <div class="scene-fade" id="scene-fade" aria-hidden="true"></div>
+        </div>
+        <aside class="drawer" id="drawer" aria-live="polite" hidden></aside>
+      </main>
+      <nav class="dock" id="dock" aria-label="Garden tools"></nav>
+    </div>
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+    <div class="fx-layer" id="fx"></div>
+    <noscript>Little Sprout needs JavaScript to grow.</noscript>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
