@@ -6,10 +6,10 @@ import { CROPS } from '../data/cropsData.js';
 import { CREATURES } from '../data/creaturesData.js';
 import { DECORATIONS } from '../data/decorData.js';
 import { FURNITURE } from '../data/furnitureData.js';
-import { EXPANSIONS } from '../data/config.js';
+import { CONFIG, EXPANSIONS } from '../data/config.js';
 import { clock as defaultClock } from './clock.js';
 import { createNewState } from './state.js';
-import { loadGame, saveGame, clearSave } from './saveManager.js';
+import { loadGame, saveGame, clearSave, sanitize, exportText, inspectSaveText, listStoredSaves, summarize } from './saveManager.js';
 import { advanceAll, plant, water, harvest } from './crops.js';
 import { buySeeds, sellProduce, fulfilOrder, fillOrders, ensureNotStuck, levelFromXp } from './economy.js';
 import { updateCreatures, adopt, pet, feed } from './creatures.js';
@@ -114,6 +114,27 @@ export function createGame({ storage, clock = defaultClock } = {}) {
     notify({ type: 'reset' });
   }
 
+  // Replaces the whole garden with one from a save file (already checked with
+  // inspectSaveText). The current garden is copied aside first.
+  function importSave(data) {
+    try {
+      const raw = storage.getItem(CONFIG.SAVE_KEY);
+      if (raw) storage.setItem(`${CONFIG.SAVE_KEY}-before-import`, raw);
+    } catch {
+      return { ok: false, reason: "Your current garden couldn't be backed up, so nothing was changed." };
+    }
+    const now = clock.now();
+    const loadedState = sanitize(data, now);
+    for (const key of Object.keys(state)) delete state[key];
+    Object.assign(state, loadedState);
+    catchUp(now);
+    fillOrders(state);
+    trackQuests(state, []);
+    if (!save()) return { ok: false, reason: "The garden was loaded but couldn't be saved in this browser." };
+    notify({ type: 'imported' });
+    return { ok: true };
+  }
+
   // First load: catch up on time spent away and make sure the boards are full.
   catchUp(clock.now());
   fillOrders(state);
@@ -126,6 +147,12 @@ export function createGame({ storage, clock = defaultClock } = {}) {
     tick,
     save,
     reset,
+    importSave,
+    exportText: () => { catchUp(clock.now()); return exportText(state, clock.now()); },
+    inspectSaveText: (text) => inspectSaveText(text, clock.now()),
+    storedSaves: () => listStoredSaves(storage, clock.now()),
+    summary: () => summarize(state),
+    persistent: storage?.persistent !== false,
     now: () => clock.now(),
     get lastSaved() { return lastSaved; },
     on(fn) { listeners.add(fn); return () => listeners.delete(fn); },

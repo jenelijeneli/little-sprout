@@ -17,6 +17,10 @@ import { createApp } from './components/app.js';
 const game = createGame({ storage: safeStorage(), clock });
 const app = createApp(game);
 
+// Ask the browser to keep this garden's save even when the disk gets full.
+// (Browsers may say no; the game works the same either way.)
+navigator.storage?.persist?.().catch(() => {});
+
 // Developer helpers, only available while running `npm run dev`.
 // Open the browser console and try: sprout.warp(30) or sprout.coins(500)
 if (import.meta.env.DEV) {

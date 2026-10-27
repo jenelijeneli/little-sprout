@@ -42,6 +42,8 @@ export function createApp(game) {
     decorSel: null, // decoration chosen in decorate mode
     popover: null, // { kind: 'plot' | 'creature', id }
     confirmReset: false,
+    pendingImport: null, // a checked save file waiting for "yes, replace"
+    importError: null,
     reduceMotion: false,
     scene: 'garden', // 'garden' | 'house'
     seedCat: 'vegetable', // seed category shown in the plant pop-up
@@ -217,6 +219,7 @@ export function createApp(game) {
   function openPanel(id, extra = {}) {
     ui.panel = id;
     ui.confirmReset = false;
+    ui.importError = null;
     if (extra.tab) ui.shopTab = extra.tab;
     if (id === 'decorate') {
       ui.tool = null;
@@ -430,6 +433,35 @@ export function createApp(game) {
       try { localStorage.setItem(MOTION_KEY, ui.reduceMotion ? '1' : '0'); } catch { /* ignore */ }
       render();
     },
+    // ---- Moving a garden with save files ----
+    'export-save': () => {
+      download(`little-sprout-garden-${dateStamp()}.json`, game.exportText());
+      effects.toast('Garden saved to a file. Look in your Downloads folder.', 'info', 'box');
+    },
+    'export-backup': (d) => {
+      const b = game.storedSaves().find((x) => x.key === d.key);
+      if (b) download(`little-sprout-backup-${dateStamp()}.json`, b.raw);
+    },
+    'import-pick': () => { ui.importError = null; fileInput.value = ''; fileInput.click(); },
+    'use-backup': (d) => {
+      const b = game.storedSaves().find((x) => x.key === d.key);
+      if (b) checkImport(b.raw, `"${b.label.toLowerCase()}"`);
+    },
+    'import-cancel': () => { ui.pendingImport = null; render(); },
+    'import-confirm': () => {
+      const pending = ui.pendingImport;
+      if (!pending) return;
+      const r = game.importSave(pending.data);
+      ui.pendingImport = null;
+      if (!r.ok) {
+        ui.importError = r.reason;
+        return render();
+      }
+      Object.assign(ui, { tool: null, seed: null, decorSel: null, popover: null, place: null, confirmReset: false, importError: null });
+      house.resetSpot();
+      effects.toast('Your garden is loaded and saved in this browser.', 'quest', 'level');
+      render();
+    },
     'reset-ask': () => { ui.confirmReset = true; render(); },
     'reset-cancel': () => { ui.confirmReset = false; render(); },
     'reset-confirm': () => {
@@ -439,6 +471,54 @@ export function createApp(game) {
       render();
     },
   };
+
+  // Save files: a download link, and one hidden file picker that lives outside
+  // the panel so it survives the panel redrawing while the picker is open.
+  function download(name, text) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  function dateStamp() {
+    const d = new Date(game.now());
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+  function checkImport(text, name) {
+    const r = game.inspectSaveText(text);
+    if (!r.ok) {
+      ui.pendingImport = null;
+      ui.importError = r.reason;
+    } else {
+      ui.importError = null;
+      ui.pendingImport = { data: r.data, summary: r.summary, exportedAt: r.exportedAt, name };
+    }
+    ui.panel = 'settings';
+    render();
+    drawer.querySelector('.move-garden')?.scrollIntoView({ block: 'start' });
+  }
+  const fileInput = document.createElement('input');
+  Object.assign(fileInput, { type: 'file', accept: '.json,application/json', hidden: true });
+  fileInput.setAttribute('aria-hidden', 'true');
+  fileInput.dataset.role = 'import-file';
+  document.body.appendChild(fileInput);
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    if (file.size > 5_000_000) {
+      ui.importError = "That file is far too big to be a Little Sprout save.";
+      return render();
+    }
+    let text;
+    try { text = await file.text(); } catch {
+      ui.importError = "That file couldn't be opened. Try saving it again.";
+      return render();
+    }
+    checkImport(text, `the garden in "${file.name}"`);
+  });
 
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-action]');
@@ -492,8 +572,10 @@ export function createApp(game) {
   document.body.dataset.scene = ui.scene;
   render();
   if (game.loadStatus === 'loaded') effects.toast('Welcome back! Your garden kept growing while you were away.', 'info', 'level');
-  else if (game.loadStatus === 'recovered') effects.toast('Your old save could not be read, so a fresh garden was started.', 'warn', 'sparkle');
+  else if (game.loadStatus === 'recovered') effects.toast('Your old save could not be read, so a fresh garden was started. A copy of the old save is kept under Settings › Move your garden.', 'warn', 'sparkle');
   else effects.toast('Welcome to Little Sprout! Click a patch of soil to plant your first carrot.', 'info', 'level');
+
+  if (!game.persistent) effects.toast('This browser is not letting the game save. Use Settings › Save garden to a file before you close the page.', 'warn', 'gear');
 
   return { game, ui, render };
 }

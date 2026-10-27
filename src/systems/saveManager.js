@@ -18,7 +18,8 @@ export function safeStorage() {
     return window.localStorage;
   } catch {
     const mem = new Map();
-    return { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+    // persistent: false lets the game warn that progress won't be kept.
+    return { persistent: false, getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
   }
 }
 
@@ -136,11 +137,93 @@ export function loadGame(storage, now = Date.now()) {
     return { state: sanitize(data, now), status: 'loaded' };
   } catch {
     // Keep a copy of the broken save, just in case, then start fresh.
-    try { storage.setItem(`${CONFIG.SAVE_KEY}-broken`, raw); } catch { /* ignore */ }
+    // An earlier broken copy is never replaced: a different one gets its own key.
+    try {
+      const old = storage.getItem(`${CONFIG.SAVE_KEY}-broken`);
+      if (!old) storage.setItem(`${CONFIG.SAVE_KEY}-broken`, raw);
+      else if (old !== raw) storage.setItem(`${CONFIG.SAVE_KEY}-broken-${now}`, raw);
+    } catch { /* ignore */ }
     return { state: createNewState(now), status: 'recovered' };
   }
 }
 
+// ---------- Moving a garden between browsers (save files) ----------
+// A save file is the normal save wrapped with a label, so it can be checked
+// before use. Older plain saves (just the save object) are accepted too.
+
+export const FILE_FORMAT = 'little-sprout-garden';
+
+// Other copies the game may keep in this browser, besides the main save.
+export const BACKUP_KEYS = [
+  { key: `${CONFIG.SAVE_KEY}-before-import`, label: 'Your garden from just before you last loaded a file' },
+  { key: `${CONFIG.SAVE_KEY}-before-reset`, label: 'Your garden from just before you last reset the farm' },
+  { key: `${CONFIG.SAVE_KEY}-backup-v1`, label: 'Your garden from before the cottage update' },
+  { key: `${CONFIG.SAVE_KEY}-broken`, label: 'A save that could not be read' },
+];
+
+export function exportText(state, now = Date.now()) {
+  return JSON.stringify({
+    format: FILE_FORMAT,
+    exportedAt: new Date(now).toISOString(),
+    save: { ...state, version: CONFIG.SAVE_VERSION },
+  }, null, 1);
+}
+
+// A short description of a garden, to show before replacing anything.
+export function summarize(state) {
+  const total = (bag) => Object.values(bag || {}).reduce((a, b) => a + b, 0);
+  return {
+    level: state.level,
+    xp: state.xp,
+    coins: state.coins,
+    seeds: total(state.seeds),
+    produce: total(state.produce),
+    growing: Object.values(state.plots).filter(Boolean).length,
+    beds: state.unlockedBeds.length * 2,
+    decorations: Object.keys(state.decor.placed).length + total(state.decor.owned),
+    furniture: state.home.placed.length + total(state.home.owned),
+    friends: Object.keys(state.creatures).length,
+    quests: Object.values(state.quests).filter((q) => q.claimed).length,
+  };
+}
+
+// Checks the text of a save file. Returns { ok, reason } or
+// { ok, data, state, summary, exportedAt } without changing anything.
+export function inspectSaveText(text, now = Date.now()) {
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return { ok: false, reason: "That file isn't a Little Sprout save (it can't be read)." };
+  }
+  const data = isObj(parsed) && parsed.format === FILE_FORMAT ? parsed.save : parsed;
+  const looksRight = isObj(data) && typeof data.coins === 'number' && typeof data.xp === 'number' && isObj(data.plots);
+  if (!looksRight) return { ok: false, reason: "That file isn't a Little Sprout save." };
+  if (num(data.version, 1) > CONFIG.SAVE_VERSION) {
+    return { ok: false, reason: 'That save comes from a newer version of the game. Update the game first, then try again.' };
+  }
+  const state = sanitize(data, now);
+  return { ok: true, data, state, summary: summarize(state), exportedAt: isObj(parsed) && typeof parsed.exportedAt === 'string' ? parsed.exportedAt : null };
+}
+
+// Every Little Sprout save kept in this browser, with a summary of each.
+export function listStoredSaves(storage, now = Date.now()) {
+  const out = [];
+  for (const { key, label } of [{ key: CONFIG.SAVE_KEY, label: 'Your current garden' }, ...BACKUP_KEYS]) {
+    let raw = null;
+    try { raw = storage.getItem(key); } catch { /* ignore */ }
+    if (!raw) continue;
+    const check = inspectSaveText(raw, now);
+    out.push({ key, label, raw, ok: check.ok, summary: check.ok ? check.summary : null });
+  }
+  return out;
+}
+
 export function clearSave(storage) {
+  // Keep one copy of the farm being reset, in case it was a mistake.
+  try {
+    const raw = storage.getItem(CONFIG.SAVE_KEY);
+    if (raw) storage.setItem(`${CONFIG.SAVE_KEY}-before-reset`, raw);
+  } catch { /* ignore */ }
   try { storage.removeItem(CONFIG.SAVE_KEY); } catch { /* ignore */ }
 }

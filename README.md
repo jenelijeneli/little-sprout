@@ -16,6 +16,9 @@ once it is installed.
 **Want to share it with friends and family?** See
 [8. Put it online and share it](#8-put-it-online-and-share-it).
 
+**Want your computer's garden on the website?** See
+[9. Move your garden from your computer to the website](#9-move-your-garden-from-your-computer-to-the-website).
+
 ---
 
 ## 1. Install (one time only)
@@ -220,7 +223,9 @@ These only exist in development mode, not in the built game.
 - Saves made before the cottage update are upgraded automatically: crops, coins, quests, friends and decorations all stay, and the cottage gets its starter furniture. Before upgrading, the old save is copied to `little-sprout-save-backup-v1` in the browser's storage, once, and never overwritten.
 - Furniture you own is never thrown away: if a saved item no longer fits where it was, it goes back to storage.
 - If a save is damaged or from an older version, the game keeps everything it can understand and fills in the rest, so changing the game's code won't wipe your progress. A completely unreadable save is set aside (as `little-sprout-save-broken`) and a new garden begins.
-- **Settings → Reset farm** starts over, after asking you to confirm.
+- **Settings → Reset farm** starts over, after asking you to confirm. One copy of the garden you reset is kept (as `little-sprout-save-before-reset`).
+- **Settings → Move your garden** saves your garden to a file and loads a garden from a file, so you can carry it to another browser, another computer or the website. See section 9.
+- Settings also lists every older copy kept in this browser (before the cottage update, before a reset, before loading a file, or one that couldn't be read). Each can be downloaded as a file or switched back to, always after a "Replace my garden?" check.
 
 ---
 
@@ -262,7 +267,7 @@ setup/deploy.yml        a copy of it, to move into place (see 8.4)
 
 ## 7. Known limitations
 
-- Single player, one garden per browser. There's no cloud save or export yet.
+- Single player, one garden per browser. There is no cloud save: gardens move between browsers with a save file (section 9), by hand.
 - Garden decorations go on 8 fixed spots rather than anywhere you like (cottage furniture can go anywhere it fits).
 - The room is seen from the front, so furniture can be flipped left and right but not rotated to face other directions.
 - On a phone the garden and cottage are small and placing furniture with a finger is fiddly; a computer or tablet works best.
@@ -424,3 +429,59 @@ to skip the browser's cache). Players keep their gardens through updates.
 Nothing secret is needed to publish: the game has no API keys, passwords or
 server settings. Never add a `.env` file or private files to the project
 folder. If you ever do, `.gitignore` keeps `.env` files out of uploads.
+
+---
+
+## 9. Move your garden from your computer to the website
+
+Your computer's garden and the website's garden are kept apart by the browser:
+a garden saved while playing at `http://localhost:5173` can't be seen from
+`https://jenelijeneli.github.io/little-sprout/`, even in the same browser.
+That is a browser safety rule, not a bug, and nothing is lost. You carry the
+garden over with a small file.
+
+**Before you start:** the website needs this update too. Do section 8.7
+(`git add .`, `git commit`, `git push`) and wait for the green ✓ on GitHub.
+
+### 9.1 Save the garden on your computer to a file
+
+1. Open the terminal in the project folder and run `npm run dev`.
+2. Open **the same browser you played in before** (for example Chrome or Edge)
+   and go to **the same address you played on before**. That is usually
+   `http://localhost:5173`. If you used `npm run preview`, it was
+   `http://localhost:4173`.
+3. Check it's your garden: your coins, level and crops should be there.
+   If you see a brand-new garden instead, you're on a different address or
+   browser. Close it and try the other one. (Opening the wrong one doesn't
+   harm your real garden.)
+4. Click the **gear** (Settings) at the top right, then
+   **Save garden to a file**. A file called
+   `little-sprout-garden-YEAR-MONTH-DAY.json` goes to your **Downloads** folder.
+   Saving to a file doesn't change the garden on your computer.
+
+### 9.2 Load the file on the website
+
+1. Open `https://jenelijeneli.github.io/little-sprout/` (press **Ctrl + F5**
+   once so you get the newest version).
+2. Click the **gear** (Settings), then **Load garden from a file…**, and pick
+   the file from your Downloads folder.
+3. The game checks the file and shows a table: what's in the file
+   ("Loading") next to the garden on the website now ("Here now").
+   Check the coins and level match your computer.
+4. Click **Yes, replace my garden**. (Cancel changes nothing.) The website's
+   old garden is kept as a backup, listed under Settings, in case you need it.
+5. Press **F5** to refresh the page. Your coins, crops, cottage and friends
+   should all still be there.
+
+### 9.3 Good to know
+
+- Crops keep growing by the clock, so after the move your plants are exactly
+  as ripe as they would be on your computer.
+- After the move, the two gardens are separate again. Pick one place to keep
+  playing (the website is easiest). To move again later, repeat 9.1 from
+  wherever you played last.
+- Keep the file. It's a full copy of your garden, and you can load it again
+  any time.
+- A file that isn't a Little Sprout save is refused with a message, and
+  nothing changes.
+
